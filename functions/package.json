@@ -18,9 +18,14 @@
     "firebase-functions": "^5.0.0",
     "axios": "^1.6.8",
     "busboy": "^1.6.0",
-    "sharp": "^0.33.3"
+    "sharp": "^0.33.3",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/busboy": "^1.5.3",
+    "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "eslint": "^8.57.0",
