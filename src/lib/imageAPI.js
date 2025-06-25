@@ -1,6 +1,6 @@
 // Firebase Functions base URL
 // Update this with your actual Firebase project URL
-const FIREBASE_FUNCTIONS_BASE_URL = 'https://us-central1-YOUR-PROJECT-ID.cloudfunctions.net'
+const FIREBASE_FUNCTIONS_BASE_URL = 'https://us-central1-exeraser.cloudfunctions.net'
 
 class ImageProcessingAPI {
   async uploadImage(file) {
