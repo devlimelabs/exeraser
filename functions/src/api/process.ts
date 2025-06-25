@@ -1,21 +1,18 @@
-import * as functions from "firebase-functions";
+import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
-import cors from "cors";
-import { CORS_OPTIONS, ERROR_MESSAGES, COLLECTIONS, PROCESSING_STATUS, STORAGE_PATHS } from "../config/constants";
+import { ERROR_MESSAGES, COLLECTIONS, PROCESSING_STATUS, STORAGE_PATHS } from "../config/constants";
 import { clipdropApiKey } from "../config/params";
 import { removeBackground } from "../services/aiServices";
 import { v4 as uuidv4 } from "uuid";
 
-const corsHandler = cors(CORS_OPTIONS);
-
-export const processImageRemoval = functions
-  .runWith({
+export const processImageRemoval = onRequest(
+  {
+    cors: true,
     secrets: [clipdropApiKey],
     timeoutSeconds: 300,
-    memory: "2GB",
-  })
-  .https.onRequest((req, res) => {
-    corsHandler(req, res, async () => {
+    memory: "2GiB",
+  },
+  async (req, res) => {
       if (req.method !== "POST") {
         res.status(405).json({ error: "Method not allowed" });
         return;
@@ -98,5 +95,5 @@ export const processImageRemoval = functions
         console.error("Processing error:", error);
         res.status(500).json({ error: ERROR_MESSAGES.PROCESSING_FAILED });
       }
-    });
-  });
+  }
+);

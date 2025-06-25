@@ -1,12 +1,10 @@
-import * as functions from "firebase-functions";
+import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
-import cors from "cors";
-import { CORS_OPTIONS, ERROR_MESSAGES, COLLECTIONS } from "../config/constants";
+import { ERROR_MESSAGES, COLLECTIONS } from "../config/constants";
 
-const corsHandler = cors(CORS_OPTIONS);
-
-export const downloadResult = functions.https.onRequest((req, res) => {
-  corsHandler(req, res, async () => {
+export const downloadResult = onRequest(
+  { cors: true },
+  async (req, res) => {
     if (req.method !== "GET") {
       res.status(405).json({ error: "Method not allowed" });
       return;
@@ -67,5 +65,5 @@ export const downloadResult = functions.https.onRequest((req, res) => {
       console.error("Download error:", error);
       res.status(500).json({ error: "Failed to generate download link" });
     }
-  });
-});
+  }
+);

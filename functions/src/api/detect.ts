@@ -1,18 +1,15 @@
-import * as functions from "firebase-functions";
-import cors from "cors";
-import { CORS_OPTIONS, ERROR_MESSAGES, COLLECTIONS, PROCESSING_STATUS } from "../config/constants";
+import { onRequest } from "firebase-functions/v2/https";
+import { ERROR_MESSAGES, COLLECTIONS, PROCESSING_STATUS } from "../config/constants";
 import { roboflowApiKey } from "../config/params";
 import { detectPeople } from "../services/aiServices";
 import * as admin from "firebase-admin";
 
-const corsHandler = cors(CORS_OPTIONS);
-
-export const detectPeopleInImage = functions
-  .runWith({
+export const detectPeopleInImage = onRequest(
+  {
+    cors: true,
     secrets: [roboflowApiKey],
-  })
-  .https.onRequest((req, res) => {
-    corsHandler(req, res, async () => {
+  },
+  async (req, res) => {
       if (req.method !== "POST") {
         res.status(405).json({ error: "Method not allowed" });
         return;
@@ -77,5 +74,5 @@ export const detectPeopleInImage = functions
         console.error("Detection error:", error);
         res.status(500).json({ error: ERROR_MESSAGES.DETECTION_FAILED });
       }
-    });
-  });
+  }
+);

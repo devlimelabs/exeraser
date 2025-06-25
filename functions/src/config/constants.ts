@@ -43,8 +43,3 @@ export const ERROR_MESSAGES = {
   UNAUTHORIZED: "Unauthorized request.",
 } as const;
 
-// CORS configuration
-export const CORS_OPTIONS = {
-  origin: true,
-  credentials: true,
-} as const;

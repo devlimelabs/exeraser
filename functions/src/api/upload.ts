@@ -1,14 +1,12 @@
-import * as functions from "firebase-functions";
+import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
-import cors from "cors";
 import Busboy from "busboy";
 import { v4 as uuidv4 } from "uuid";
-import { CORS_OPTIONS, ERROR_MESSAGES, IMAGE_PROCESSING, STORAGE_PATHS } from "../config/constants";
+import { ERROR_MESSAGES, IMAGE_PROCESSING, STORAGE_PATHS } from "../config/constants";
 
-const corsHandler = cors(CORS_OPTIONS);
-
-export const uploadImage = functions.https.onRequest((req, res) => {
-  corsHandler(req, res, async () => {
+export const uploadImage = onRequest(
+  { cors: true },
+  async (req, res) => {
     if (req.method !== "POST") {
       res.status(405).json({ error: "Method not allowed" });
       return;
@@ -85,5 +83,5 @@ export const uploadImage = functions.https.onRequest((req, res) => {
     });
 
     busboy.end(req.rawBody);
-  });
-});
+  }
+);
