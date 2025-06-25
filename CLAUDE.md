@@ -38,12 +38,14 @@ exeraser-prototype/
 - **shadcn/ui** components with Tailwind CSS
 - **React Router DOM** for navigation
 - **Lucide React** for icons
+- **Firebase SDK** for future auth and storage features
 
 ### Backend
-- **Flask** with Python 3.11
-- **SQLAlchemy** with SQLite (for future user features)
-- **CORS** enabled for API access
-- **Multipart form** handling for image uploads
+- **Firebase Functions v2** (TypeScript)
+- **Firebase Storage** for image uploads/processing
+- **Firebase Firestore** (ready for user features)
+- **CORS** handled natively by Functions v2
+- **Busboy** for multipart form handling
 
 ### AI Services (Production-ready)
 - **Roboflow** - People detection API
@@ -51,17 +53,19 @@ exeraser-prototype/
 - **Segmind** - Advanced mask generation
 
 ## Current Status
-- **Demo Mode Active**: Currently using mock AI responses to avoid API costs
-- **Live Deployment**: https://xlhyimcjgd8m.manus.space
+- **Production Deployment**: https://exeraser.web.app
+- **Firebase Project**: exeraser (us-central1 region)
 - **Full Implementation**: All UI/UX and API endpoints complete
-- **AI Integration**: Code ready, awaiting API keys
+- **AI Integration**: Fully integrated with Roboflow, ClipDrop, and Segmind APIs
+- **Architecture**: Migrated to Firebase serverless stack
 
 ## API Endpoints
-- `POST /api/image/upload` - Upload image
-- `POST /api/image/detect-people` - Detect people in image
-- `POST /api/image/remove-people` - Remove selected people
-- `GET /api/image/download/<result_id>` - Download processed image
-- `GET /api/image/status` - Health check
+Base URL: `https://us-central1-exeraser.cloudfunctions.net/`
+- `POST /uploadImage` - Upload image to Firebase Storage
+- `POST /detectPeopleInImage` - Detect people using Roboflow
+- `POST /processImageRemoval` - Remove selected people using ClipDrop
+- `GET /downloadResult` - Get signed URL for processed image
+- `GET /healthCheck` - API health status
 
 ## Design Philosophy
 - **Emotional Sensitivity**: Acknowledges personal nature of use case
@@ -75,7 +79,8 @@ exeraser-prototype/
 - Accent: Bright Cyan (#06D6A0) - success/positive outcomes
 
 ## Development Notes
-- To activate full AI mode: Add API keys to environment variables
-- Frontend served from Flask static directory in production
-- Mock mode allows full testing without API costs
-- Prepared for future features: user auth, payments, batch processing
+- **API Keys**: Configured as Firebase Functions secrets (ROBOFLOW_API_KEY, CLIPDROP_API_KEY, SEGMIND_API_KEY)
+- **Deployment**: Frontend on Firebase Hosting, backend on Firebase Functions v2
+- **Environment**: Copy `.env.example` to `.env` for local Firebase config
+- **Future Features**: User auth, payments, batch processing ready with Firebase infrastructure
+- **Security**: Storage rules configured for anonymous uploads with 10MB limit
