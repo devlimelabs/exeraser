@@ -1,12 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import LandingPage from './components/LandingPage'
+import EditorPage from './components/EditorPage'
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<div>Home</div>} />
-        <Route path="/editor" element={<div>Editor</div>} />
-      </Routes>
+      <div className="min-h-screen bg-background">
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/editor" element={<EditorPage />} />
+        </Routes>
+      </div>
     </Router>
   )
 }
