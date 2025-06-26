@@ -7,6 +7,12 @@ import { ERROR_MESSAGES, IMAGE_PROCESSING, STORAGE_PATHS } from "../config/const
 export const uploadImage = onRequest(
   { cors: true },
   async (req, res) => {
+    console.log("Upload request received:", {
+      method: req.method,
+      headers: req.headers,
+      contentType: req.headers["content-type"],
+    });
+
     if (req.method !== "POST") {
       res.status(405).json({ error: "Method not allowed" });
       return;
@@ -18,14 +24,18 @@ export const uploadImage = onRequest(
 
     const bucket = admin.storage().bucket();
 
-    busboy.on("file", (fieldname: string, file: any, filename: any, encoding: string, mimetype: string) => {
+    busboy.on("file", (fieldname: string, file: any, fileInfo: any) => {
+      const { filename, mimeType } = fileInfo;
+      console.log("Processing file:", { filename, mimeType, fieldname });
+      
       // Validate file type
-      if (!IMAGE_PROCESSING.ALLOWED_TYPES.includes(mimetype as any)) {
+      if (!IMAGE_PROCESSING.ALLOWED_TYPES.includes(mimeType as any)) {
+        console.error("Invalid file type:", mimeType);
         res.status(400).json({ error: ERROR_MESSAGES.INVALID_IMAGE });
         return;
       }
 
-      const filepath = `${STORAGE_PATHS.TEMP}/${uploadId}/${filename.filename}`;
+      const filepath = `${STORAGE_PATHS.TEMP}/${uploadId}/${filename}`;
       const fileUpload = bucket.file(filepath);
 
       let totalBytes = 0;
@@ -43,10 +53,10 @@ export const uploadImage = onRequest(
 
       const stream = fileUpload.createWriteStream({
         metadata: {
-          contentType: mimetype,
+          contentType: mimeType,
           metadata: {
             uploadId,
-            originalName: filename.filename,
+            originalName: filename,
             uploadTime: new Date().toISOString(),
           },
         },
@@ -69,7 +79,7 @@ export const uploadImage = onRequest(
         
         res.json({
           uploadId,
-          filename: filename.filename,
+          filename: filename,
           url: publicUrl,
           message: "Image uploaded successfully",
         });
@@ -78,10 +88,21 @@ export const uploadImage = onRequest(
 
     busboy.on("finish", () => {
       if (!fileUploaded) {
+        console.log("No file was uploaded");
         res.status(400).json({ error: ERROR_MESSAGES.NO_IMAGE_PROVIDED });
       }
     });
 
-    busboy.end(req.rawBody);
+    busboy.on("error", (error: Error) => {
+      console.error("Busboy error:", error);
+      res.status(400).json({ error: "Failed to parse upload" });
+    });
+
+    try {
+      busboy.end(req.rawBody);
+    } catch (error) {
+      console.error("Failed to process request body:", error);
+      res.status(400).json({ error: "Invalid request format" });
+    }
   }
 );
