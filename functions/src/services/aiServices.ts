@@ -1,5 +1,6 @@
 import axios from "axios";
 import sharp from "sharp";
+import FormData from "form-data";
 import { roboflowApiKey, roboflowModel, clipdropApiKey } from "../config/params";
 
 interface Prediction {
@@ -92,31 +93,55 @@ export async function removeBackground(
     // Create mask for selected people
     const maskBuffer = await createMask(predictions, selectedPeople, width, height);
 
-    // Use ClipDrop cleanup API
+    // Use ClipDrop cleanup API with Node.js FormData
     const formData = new FormData();
-    formData.append("image_file", new Blob([imageBuffer]), "image.jpg");
-    formData.append("mask_file", new Blob([maskBuffer]), "mask.png");
+    formData.append("image_file", imageBuffer, {
+      filename: "image.jpg",
+      contentType: "image/jpeg",
+    });
+    formData.append("mask_file", maskBuffer, {
+      filename: "mask.png",
+      contentType: "image/png",
+    });
+    formData.append("mode", quality === "high" ? "quality" : "fast");
+
+    console.log("Calling ClipDrop API with:", {
+      imageSize: imageBuffer.length,
+      maskSize: maskBuffer.length,
+      quality,
+      selectedPeople: selectedPeople.length
+    });
 
     const response = await axios.post(
       "https://clipdrop-api.co/cleanup/v1",
       formData,
       {
         headers: {
+          ...formData.getHeaders(),
           "x-api-key": apiKey,
         },
         responseType: "arraybuffer",
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
       }
     );
 
+    console.log("ClipDrop API response received, size:", response.data.length);
     return Buffer.from(response.data);
-  } catch (error) {
-    console.error("ClipDrop removal error:", error);
+  } catch (error: any) {
+    console.error("ClipDrop removal error:", {
+      message: error.message,
+      response: error.response?.data?.toString(),
+      status: error.response?.status,
+      headers: error.response?.headers
+    });
     throw new Error("Failed to process image removal");
   }
 }
 
 /**
  * Create a mask image for the selected people
+ * ClipDrop expects: black (0) = keep, white (255) = remove
  */
 async function createMask(
   predictions: Prediction[],
@@ -124,32 +149,46 @@ async function createMask(
   width: number,
   height: number
 ): Promise<Buffer> {
-  // Create a blank mask
+  console.log("Creating mask for selected people:", {
+    totalPredictions: predictions.length,
+    selectedCount: selectedPeople.length,
+    imageSize: { width, height }
+  });
+
+  // Create a black mask (all pixels to keep)
   const mask = sharp({
     create: {
       width,
       height,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      channels: 3,
+      background: { r: 0, g: 0, b: 0 },
     },
   });
 
-  // Create white rectangles for selected people
+  // Create white rectangles for selected people (areas to remove)
+  // Expand the mask by 15% as recommended by ClipDrop docs
+  const expansionFactor = 1.15;
+  
   const composites = predictions
     .filter((pred) => selectedPeople.includes(pred.detection_id))
     .map((pred) => {
+      const expandedWidth = Math.round(pred.width * expansionFactor);
+      const expandedHeight = Math.round(pred.height * expansionFactor);
+      
       const rect = Buffer.from(
-        `<svg width="${pred.width}" height="${pred.height}">
-          <rect x="0" y="0" width="${pred.width}" height="${pred.height}" fill="white"/>
+        `<svg width="${expandedWidth}" height="${expandedHeight}">
+          <rect x="0" y="0" width="${expandedWidth}" height="${expandedHeight}" fill="white"/>
         </svg>`
       );
 
       return {
         input: rect,
-        left: Math.round(pred.x - pred.width / 2),
-        top: Math.round(pred.y - pred.height / 2),
+        left: Math.round(pred.x - expandedWidth / 2),
+        top: Math.round(pred.y - expandedHeight / 2),
       };
     });
+
+  console.log("Mask composites created:", composites.length);
 
   if (composites.length > 0) {
     return await mask.composite(composites).png().toBuffer();

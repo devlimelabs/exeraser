@@ -67,13 +67,13 @@ const EditorPage = () => {
       
       if (detectionResult.predictions) {
         // Transform predictions to match the expected format
-        const people = detectionResult.predictions.map((pred, index) => ({
-          id: index + 1,
-          x: (pred.bbox[0] / detectionResult.imageWidth) * 100,
-          y: (pred.bbox[1] / detectionResult.imageHeight) * 100,
-          width: ((pred.bbox[2] - pred.bbox[0]) / detectionResult.imageWidth) * 100,
-          height: ((pred.bbox[3] - pred.bbox[1]) / detectionResult.imageHeight) * 100,
-          confidence: pred.score
+        const people = detectionResult.predictions.map((pred) => ({
+          id: pred.detection_id,
+          x: ((pred.x - pred.width / 2) / detectionResult.imageWidth) * 100,
+          y: ((pred.y - pred.height / 2) / detectionResult.imageHeight) * 100,
+          width: (pred.width / detectionResult.imageWidth) * 100,
+          height: (pred.height / detectionResult.imageHeight) * 100,
+          confidence: pred.confidence
         }))
         setDetectedPeople(people)
         setCurrentStep('select')
