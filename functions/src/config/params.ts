@@ -1,4 +1,4 @@
-import {defineSecret, defineString} from "firebase-functions/params";
+import { defineSecret, defineString } from 'firebase-functions/params';
 
 // API Keys as secrets
 export const roboflowApiKey = defineSecret("ROBOFLOW_API_KEY");
@@ -7,7 +7,7 @@ export const segmindApiKey = defineSecret("SEGMIND_API_KEY");
 
 // Configuration parameters
 export const roboflowModel = defineString("ROBOFLOW_MODEL", {
-  default: "people-detection-o2iay/1",
+  default: "people-detection-general/7",
   description: "Roboflow model ID for people detection",
 });
 

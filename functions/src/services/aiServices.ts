@@ -33,18 +33,33 @@ export async function detectPeople(imageUrl: string): Promise<DetectionResult> {
       return getMockDetectionResult();
     }
 
+    console.log("Detecting people with Roboflow:", {
+      modelId,
+      imageUrl,
+      endpoint: `https://serverless.roboflow.com/${modelId}`
+    });
+
+    // Use serverless endpoint with image URL as query parameter
     const response = await axios.post(
-      `https://detect.roboflow.com/${modelId}`,
-      { image: imageUrl },
+      `https://serverless.roboflow.com/${modelId}`,
+      null, // No body for URL-based detection
       {
-        params: { api_key: apiKey },
-        headers: { "Content-Type": "application/json" },
+        params: { 
+          api_key: apiKey,
+          image: imageUrl
+        }
       }
     );
 
+    console.log("Roboflow response:", response.data);
+
     return response.data;
-  } catch (error) {
-    console.error("Roboflow detection error:", error);
+  } catch (error: any) {
+    console.error("Roboflow detection error:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
     throw new Error("Failed to detect people in image");
   }
 }
