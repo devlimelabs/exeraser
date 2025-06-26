@@ -5,7 +5,7 @@ import * as admin from "firebase-admin";
 admin.initializeApp();
 
 // Export function modules
-export * from "./api/upload";
+// export * from "./api/upload"; // Removed - now using direct Firebase Storage SDK
 export * from "./api/detect";
 export * from "./api/process";
 export * from "./api/download";
